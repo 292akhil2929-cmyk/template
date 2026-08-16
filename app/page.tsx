@@ -1,213 +1,169 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 
-type Palette = "confetti" | "midnight" | "comic" | "bubblegum";
-
-const rooms = [
-  { label: "The hello", short: "01" },
-  { label: "Little things", short: "02" },
-  { label: "Our wall", short: "03" },
-  { label: "Make a wish", short: "04" },
-  { label: "The balcony", short: "05" },
+const chapters = ["Welcome", "Why you", "Memories", "A wish", "Your card"];
+const defaultPhotos = [
+  "/generated/birthday-doorway.png",
+  "/generated/birthday-cake.png",
+  "/generated/birthday-balcony.png",
 ];
 
-const themes: Record<Palette, { label: string; hint: string }> = {
-  confetti: { label: "Confetti", hint: "cream · cherry · lilac" },
-  midnight: { label: "Midnight Gold", hint: "ink · moonlight · gold" },
-  comic: { label: "Comic Pop", hint: "lemon · red · blue" },
-  bubblegum: { label: "Bubblegum", hint: "lilac · mint · blush" },
-};
-
-export default function Home() {
-  const [room, setRoom] = useState(-1);
-  const [showEditor, setShowEditor] = useState(false);
+export default function BirthdayStory() {
+  const [chapter, setChapter] = useState(-1);
+  const [editorOpen, setEditorOpen] = useState(false);
   const [name, setName] = useState("Emma");
   const [age, setAge] = useState("21");
   const [from, setFrom] = useState("Riya");
   const [relationship, setRelationship] = useState("friend");
-  const [special, setSpecial] = useState("endless kindness, terrible puns, and always being the last to leave");
-  const [message, setMessage] = useState("Happy birthday to my partner in every adventure. Life is brighter, funnier, and much more beautiful with you in it.");
-  const [palette, setPalette] = useState<Palette>("confetti");
-  const [soundOn, setSoundOn] = useState(false);
+  const [special, setSpecial] = useState("Your kind heart, the way you make everyone laugh, and how you always show up");
+  const [message, setMessage] = useState("Happy birthday to my favourite adventure buddy. Life is softer, brighter and so much more fun with you in it. Here’s to everything waiting for you this year.");
+  const [photos, setPhotos] = useState<string[]>([]);
 
-  const specialBits = useMemo(
-    () => special.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 3),
-    [special],
-  );
+  const qualities = useMemo(() => {
+    const parts = special.split(",").map((item) => item.trim()).filter(Boolean);
+    return [parts[0] || "Your kind heart", parts[1] || "The best laughs", parts[2] || "Always showing up"];
+  }, [special]);
+  const gallery = photos.length ? photos : defaultPhotos;
 
-  const next = () => setRoom((current) => Math.min(current + 1, rooms.length - 1));
-  const previous = () => setRoom((current) => Math.max(current - 1, -1));
+  const next = () => setChapter((value) => Math.min(value + 1, 4));
+  const previous = () => setChapter((value) => Math.max(value - 1, -1));
 
   useEffect(() => {
-    const handleKey = (event: KeyboardEvent) => {
-      if (showEditor) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (editorOpen) return;
       if (event.key === "ArrowRight") next();
       if (event.key === "ArrowLeft") previous();
-      if (event.key === "Escape" && room >= 0) setRoom(-1);
     };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [showEditor, room]);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editorOpen]);
+
+  const uploadPhotos = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []).slice(0, 4);
+    setPhotos(files.map((file) => URL.createObjectURL(file)));
+  };
 
   return (
-    <main className={`experience theme-${palette}`} data-room={room}>
-      <div className="grain" aria-hidden="true" />
+    <main className="story-shell">
+      <Confetti count={46} />
 
-      <header className="topbar">
-        <button className="brand" onClick={() => setRoom(-1)} aria-label="Return to the entrance">
-          <span className="brand-mark">m</span>
-          <span>made for you</span>
+      <header className="story-header">
+        <button className="logo" onClick={() => setChapter(-1)} aria-label="Back to the beginning">
+          <span>m</span><b>made for you</b>
         </button>
-        <div className="top-actions">
-          <button className="icon-button" onClick={() => setSoundOn(!soundOn)} aria-label={soundOn ? "Mute ambience" : "Turn ambience on"}>
-            {soundOn ? "♪" : "♩"}
-          </button>
-          <button className="edit-button" onClick={() => setShowEditor(true)}>Personalise <span>↗</span></button>
-        </div>
+        <button className="personalise" onClick={() => setEditorOpen(true)}>Personalise <span>✦</span></button>
       </header>
 
-      <nav className="floorplan" aria-label="Story rooms">
-        <span className="floorplan-title">A little tour for {name}</span>
-        <div className="floorplan-track">
-          {rooms.map((item, index) => (
-            <button
-              key={item.label}
-              className={index === room ? "active" : index < room ? "visited" : ""}
-              onClick={() => setRoom(index)}
-              aria-current={index === room ? "step" : undefined}
-            >
-              <span>{item.short}</span><em>{item.label}</em>
-            </button>
-          ))}
-        </div>
+      <nav className="chapter-nav" aria-label="Birthday story chapters">
+        {chapters.map((label, index) => (
+          <button key={label} className={chapter === index ? "active" : chapter > index ? "done" : ""} onClick={() => setChapter(index)}>
+            <i>{index + 1}</i><span>{label}</span>
+          </button>
+        ))}
       </nav>
 
-      <section className={`scene entrance ${room === -1 ? "is-visible" : ""}`} aria-hidden={room !== -1}>
-        <div className="entrance-copy">
-          <p className="eyebrow">A birthday story in five rooms</p>
-          <h1>There&apos;s something<br />waiting <i>inside.</i></h1>
-          <p className="intro">We saved a few of the things that make {name}, {name}. Take your time. Look around.</p>
-          <button className="primary-button" onClick={next}><span>Knock to enter</span><b>→</b></button>
-          <small>Best explored slowly · headphones optional</small>
+      <section className={`panel hero-panel ${chapter === -1 ? "show" : ""}`} aria-hidden={chapter !== -1}>
+        <img src="/generated/birthday-doorway.png" alt="Pastel birthday room with balloons and an open blue doorway" />
+        <div className="image-wash" />
+        <div className="hero-copy">
+          <p className="overline">A little birthday world for {name}</p>
+          <h1>Something lovely<br />is waiting <em>inside.</em></h1>
+          <p className="lead">Five little rooms. A thousand reasons to celebrate you.</p>
+          <button className="cta" onClick={next}>Step inside <span>→</span></button>
         </div>
-        <button className="door" onClick={next} aria-label="Enter the first room">
-          <span className="door-number">{age || "21"}</span>
-          <span className="door-light" />
-          <span className="door-handle" />
-          <span className="doormat">FOR {name.toUpperCase()}</span>
-        </button>
-        <div className="plant plant-left" aria-hidden="true"><i /><i /><i /></div>
-        <div className="plant plant-right" aria-hidden="true"><i /><i /></div>
+        <div className="hero-tag"><span>{age}</span><p>looks good<br />on you.</p></div>
+        <p className="hint">Use the arrows or your keyboard to wander</p>
       </section>
 
-      <section className={`scene room room-one ${room === 0 ? "is-visible" : ""}`} aria-hidden={room !== 0}>
-        <div className="room-label"><span>Room one</span><i />The hello</div>
-        <div className="sun-window" aria-hidden="true"><span /></div>
-        <div className="hello-note">
-          <span className="tape" />
-          <p>For the one who<br />makes ordinary days</p>
-          <strong>feel like the good part.</strong>
-          <small>— {from}</small>
+      <section className={`panel welcome-panel ${chapter === 0 ? "show" : ""}`} aria-hidden={chapter !== 0}>
+        <div className="soft-orb orb-one" /><div className="soft-orb orb-two" />
+        <div className="welcome-card">
+          <span className="mini-confetti">✦ &nbsp; ● &nbsp; ✦</span>
+          <p className="overline">Room one · just for you</p>
+          <h2>Hi, {name}.</h2>
+          <p>This place is filled with the little things that make you impossible not to love.</p>
+          <button className="text-link" onClick={next}>Keep wandering <span>→</span></button>
         </div>
-        <div className="side-table" aria-hidden="true"><span className="vase">✿</span><i /></div>
-        <div className="scene-copy">
-          <p className="eyebrow">Come in, {name}</p>
-          <h2>This place was<br />made with <i>you</i> in mind.</h2>
-          <p>There are little pieces of you tucked into every room. Start wherever the light catches your eye.</p>
-        </div>
+        <div className="floating-note note-one">today is<br /><b>all yours</b><span>♥</span></div>
+        <div className="floating-note note-two">from {from},<br />with love</div>
       </section>
 
-      <section className={`scene room room-two ${room === 1 ? "is-visible" : ""}`} aria-hidden={room !== 1}>
-        <div className="room-label"><span>Room two</span><i />Little things</div>
-        <div className="shelf shelf-top" />
-        <div className="object-grid">
-          {specialBits.map((bit, index) => (
-            <article className="keepsake" key={bit} style={{ "--tilt": `${index % 2 ? 2 : -2}deg` } as React.CSSProperties}>
-              <span className="keepsake-icon">{["☀", "☺", "∞"][index]}</span>
-              <p>{bit}</p>
-              <small>thing no. 0{index + 1}</small>
+      <section className={`panel qualities-panel ${chapter === 1 ? "show" : ""}`} aria-hidden={chapter !== 1}>
+        <div className="section-heading">
+          <p className="overline">Room two · the very best bits</p>
+          <h2>A few things we<br />love about <em>you.</em></h2>
+        </div>
+        <div className="quality-grid">
+          {qualities.map((quality, index) => (
+            <article key={quality} className={`quality-card quality-${index + 1}`}>
+              <span>{["♥", "☀", "✦"][index]}</span><small>0{index + 1}</small><p>{quality}</p>
             </article>
           ))}
         </div>
-        <div className="scene-copy align-right">
-          <p className="eyebrow">The tiny museum of {name}</p>
-          <h2>It&apos;s the little things<br />that are <i>everything.</i></h2>
-          <p>Hover over a keepsake. These are the details people remember long after the candles go out.</p>
-        </div>
+        <p className="tiny-note">And honestly? This list could go on forever.</p>
       </section>
 
-      <section className={`scene room room-three ${room === 2 ? "is-visible" : ""}`} aria-hidden={room !== 2}>
-        <div className="room-label"><span>Room three</span><i />Our wall</div>
-        <div className="gallery-wall">
-          <figure className="photo photo-a"><div className="photo-fill">summer<br />somewhere</div><figcaption>the day we lost track of time</figcaption></figure>
-          <figure className="photo photo-b"><div className="photo-fill">you + me<br />+ no plan</div><figcaption>still my favourite plan</figcaption></figure>
-          <figure className="photo photo-c"><div className="photo-fill">late nights<br />& loud laughs</div><figcaption>proof that we were here</figcaption></figure>
-          <div className="scribble">more of this,<br /><i>always.</i></div>
+      <section className={`panel memories-panel ${chapter === 2 ? "show" : ""}`} aria-hidden={chapter !== 2}>
+        <div className="section-heading memory-heading">
+          <p className="overline">Room three · our favourite frames</p>
+          <h2>Keep these<br /><em>close.</em></h2>
+          <p>Good days, blurry nights, and all the beautiful bits in between.</p>
         </div>
-        <div className="scene-copy gallery-copy">
-          <p className="eyebrow">A few frames from us</p>
-          <h2>Some memories<br />refuse to sit <i>still.</i></h2>
-          <p>Your uploaded photos will live here as layered, touchable snapshots—not a plain carousel.</p>
+        <div className="photo-stack">
+          {gallery.slice(0, 3).map((photo, index) => (
+            <figure key={`${photo}-${index}`} className={`memory-photo memory-${index + 1}`}>
+              <img src={photo} alt={photos.length ? `Uploaded memory ${index + 1}` : `Birthday memory placeholder ${index + 1}`} />
+              <figcaption>{["the happiest kind of chaos", "one more wish", "always more to come"][index]}</figcaption>
+            </figure>
+          ))}
         </div>
+        <div className="doodle-arrow">our little<br />time capsule ↗</div>
       </section>
 
-      <section className={`scene room room-four ${room === 3 ? "is-visible" : ""}`} aria-hidden={room !== 3}>
-        <div className="room-label"><span>Room four</span><i />Make a wish</div>
-        <div className="night-window"><span className="moon" /><i /><i /><i /></div>
-        <div className="cake-table">
-          <div className="cake">
-            <span className="candle"><i /></span><span className="candle"><i /></span><span className="candle"><i /></span>
-            <b>{age || "21"}</b>
-          </div>
-          <div className="table-top" />
-        </div>
+      <section className={`panel wish-panel ${chapter === 3 ? "show" : ""}`} aria-hidden={chapter !== 3}>
+        <img src="/generated/birthday-cake.png" alt="Pastel birthday cake with candles and confetti" />
+        <div className="wish-gradient" />
         <div className="wish-copy">
-          <p className="eyebrow">One breath. One wish.</p>
-          <h2>{name}, this year<br />looks good on you.</h2>
-          <button className="wish-button" onClick={next}>Blow out the candles <span>→</span></button>
+          <p className="overline">Room four · make it a good one</p>
+          <h2>Close your eyes.<br />Make a <em>wish.</em></h2>
+          <p>Here’s to {age || "another"} — and every brilliant thing coming next.</p>
+          <button className="cta blue" onClick={next}>Blow out the candles <span>→</span></button>
         </div>
+        <div className="candle-sparkles" aria-hidden="true"><i>✦</i><i>✦</i><i>✦</i></div>
       </section>
 
-      <section className={`scene balcony ${room === 4 ? "is-visible" : ""}`} aria-hidden={room !== 4}>
-        <div className="room-label light"><span>Final room</span><i />The balcony</div>
-        <div className="stars" aria-hidden="true">{Array.from({ length: 24 }, (_, index) => <i key={index} />)}</div>
-        <div className="city" aria-hidden="true">{Array.from({ length: 11 }, (_, index) => <i key={index} />)}</div>
-        <div className="balcony-rail" aria-hidden="true" />
-        <article className="birthday-card">
-          <span className="card-kicker">A note from {from}</span>
-          <h2>Happy birthday,<br /><i>{name}.</i></h2>
-          <p>{message}</p>
-          <div className="signature">with all my love, <strong>{from}</strong></div>
-          <span className="card-stamp">{age || "♥"}</span>
+      <section className={`panel finale-panel ${chapter === 4 ? "show" : ""}`} aria-hidden={chapter !== 4}>
+        <img src="/generated/birthday-balcony.png" alt="Dreamy birthday balcony at blue hour with pink and blue balloons" />
+        <div className="finale-wash" />
+        <article className="final-card">
+          <p className="overline">One last thing, from {from}</p>
+          <h2>Happy birthday,<br /><em>{name}.</em></h2>
+          <p className="message">{message}</p>
+          <div className="sign-off"><span>With all my love,</span><b>{from}</b></div>
+          <div className="stamp">{age || "♥"}</div>
         </article>
-        <div className="final-copy">
-          <p>Made for my favourite {relationship}.</p>
-          <button onClick={() => setRoom(-1)}>Walk through again ↺</button>
-        </div>
-        <div className="confetti" aria-hidden="true">{Array.from({ length: 18 }, (_, index) => <i key={index} />)}</div>
+        <div className="final-caption">For my favourite {relationship}. <button onClick={() => setChapter(-1)}>Start again ↺</button></div>
       </section>
 
-      {room >= 0 && (
-        <div className="room-controls">
-          <button onClick={previous} aria-label="Previous room">←</button>
-          <span>{String(room + 1).padStart(2, "0")} <i /> {String(rooms.length).padStart(2, "0")}</span>
-          <button onClick={next} disabled={room === rooms.length - 1} aria-label="Next room">→</button>
-        </div>
-      )}
+      {chapter >= 0 && <div className="story-arrows"><button onClick={previous}>←</button><span>{chapter + 1} / 5</span><button onClick={next} disabled={chapter === 4}>→</button></div>}
 
-      <aside className={`editor ${showEditor ? "open" : ""}`} aria-hidden={!showEditor}>
-        <div className="editor-head"><div><small>LIVE STORY EDITOR</small><h2>Make it theirs.</h2></div><button onClick={() => setShowEditor(false)} aria-label="Close editor">×</button></div>
-        <div className="editor-scroll">
-          <div className="two-fields"><label>Their name<input value={name} onChange={(e) => setName(e.target.value)} /></label><label>Turning<input value={age} onChange={(e) => setAge(e.target.value)} /></label></div>
-          <div className="two-fields"><label>They are your<select value={relationship} onChange={(e) => setRelationship(e.target.value)}><option>friend</option><option>partner</option><option>sibling</option><option>parent</option><option>favourite person</option></select></label><label>Your name<input value={from} onChange={(e) => setFrom(e.target.value)} /></label></div>
-          <label>What makes them special?<textarea value={special} onChange={(e) => setSpecial(e.target.value)} rows={3} /></label>
-          <label>Your own message<textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={5} /></label>
-          <fieldset><legend>Pick a look</legend><div className="palette-grid">{(Object.keys(themes) as Palette[]).map((key) => <button key={key} className={`${key} ${palette === key ? "selected" : ""}`} onClick={() => setPalette(key)}><i /><span><b>{themes[key].label}</b><small>{themes[key].hint}</small></span></button>)}</div></fieldset>
+      <aside className={`editor ${editorOpen ? "open" : ""}`} aria-hidden={!editorOpen}>
+        <div className="editor-title"><div><p className="overline">Make the story theirs</p><h2>Personalise it.</h2></div><button onClick={() => setEditorOpen(false)} aria-label="Close">×</button></div>
+        <div className="editor-body">
+          <div className="field-row"><label>Their name<input value={name} onChange={(e) => setName(e.target.value)} /></label><label>Turning<input value={age} onChange={(e) => setAge(e.target.value)} /></label></div>
+          <div className="field-row"><label>They are your<select value={relationship} onChange={(e) => setRelationship(e.target.value)}><option>friend</option><option>partner</option><option>sibling</option><option>parent</option><option>favourite person</option></select></label><label>Your name<input value={from} onChange={(e) => setFrom(e.target.value)} /></label></div>
+          <label>What makes them special?<textarea rows={4} value={special} onChange={(e) => setSpecial(e.target.value)} /></label>
+          <label>Your message<textarea rows={5} value={message} onChange={(e) => setMessage(e.target.value)} /></label>
+          <label className="photo-upload">Add their photos<input type="file" accept="image/*" multiple onChange={uploadPhotos} /><span><b>＋ Choose up to 4 photos</b><small>{photos.length ? `${photos.length} added — looking good!` : "They’ll appear in the memory room"}</small></span></label>
         </div>
-        <button className="save-story" onClick={() => { setShowEditor(false); setRoom(-1); }}>Preview their story <span>→</span></button>
+        <button className="save" onClick={() => { setEditorOpen(false); setChapter(-1); }}>See their story <span>→</span></button>
       </aside>
-      {showEditor && <button className="scrim" onClick={() => setShowEditor(false)} aria-label="Close editor overlay" />}
+      {editorOpen && <button className="scrim" onClick={() => setEditorOpen(false)} aria-label="Close personalisation panel" />}
     </main>
   );
+}
+
+function Confetti({ count }: { count: number }) {
+  return <div className="confetti-field" aria-hidden="true">{Array.from({ length: count }, (_, index) => <i key={index} style={{ "--i": index } as React.CSSProperties} />)}</div>;
 }

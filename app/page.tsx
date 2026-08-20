@@ -12,6 +12,12 @@ const defaultPhotos = [
 export default function BirthdayStory() {
   const [chapter, setChapter] = useState(-1);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "light";
+    const savedTheme = window.localStorage.getItem("birthday-story-theme");
+    if (savedTheme === "dark" || savedTheme === "light") return savedTheme;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
   const [name, setName] = useState("Emma");
   const [age, setAge] = useState("21");
   const [from, setFrom] = useState("Riya");
@@ -29,6 +35,12 @@ export default function BirthdayStory() {
 
   const next = () => setChapter((value) => Math.min(value + 1, 4));
   const previous = () => setChapter((value) => Math.max(value - 1, -1));
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    window.localStorage.setItem("birthday-story-theme", theme);
+  }, [theme]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -51,7 +63,10 @@ export default function BirthdayStory() {
   const finishSwipe = (clientX: number) => {
     if (pointerStartX.current === null || editorOpen) return;
     const distance = clientX - pointerStartX.current;
-    if (Math.abs(distance) > 55) distance < 0 ? next() : previous();
+    if (Math.abs(distance) > 55) {
+      if (distance < 0) next();
+      else previous();
+    }
     pointerStartX.current = null;
   };
 
@@ -68,7 +83,19 @@ export default function BirthdayStory() {
         <button className="logo" onClick={() => setChapter(-1)} aria-label="Back to the beginning">
           <span>m</span><b>made for you</b>
         </button>
-        <button className="personalise" onClick={() => setEditorOpen(true)}>Personalise <span>✦</span></button>
+        <div className="header-actions">
+          <button
+            className="theme-toggle"
+            onClick={() => setTheme((value) => value === "light" ? "dark" : "light")}
+            aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+            aria-pressed={theme === "dark"}
+            title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+          >
+            <span className="theme-toggle-track" aria-hidden="true"><i>{theme === "light" ? "☀" : "☾"}</i></span>
+            <b>{theme === "light" ? "Light" : "Dark"}</b>
+          </button>
+          <button className="personalise" onClick={() => setEditorOpen(true)}>Personalise <span>✦</span></button>
+        </div>
       </header>
 
       <nav className="chapter-nav" aria-label="Birthday story chapters">

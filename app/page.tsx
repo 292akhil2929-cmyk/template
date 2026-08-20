@@ -2,11 +2,45 @@
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
-const chapters = ["Welcome", "Why you", "Memories", "A wish", "Your card"];
+const chapters = ["Welcome", "Why you", "The stairs", "Memories", "Cinema", "Voices", "Soundtrack", "The table", "A wish", "Your card"];
 const defaultPhotos = [
   "/generated/birthday-doorway.webp",
   "/generated/birthday-cake.webp",
   "/generated/birthday-balcony.webp",
+];
+
+const timeline = [
+  ["2026", "This birthday", "A whole little world, made just to celebrate you."],
+  ["2024", "That brave thing", "You did it scared, and somehow made courage look effortless."],
+  ["2022", "The beginning", "The year a small decision quietly changed everything."],
+  ["2019", "Our favourite chaos", "No plan, no sleep, and still one of the best days ever."],
+  ["Always", "The golden thread", "You kept becoming more yourself — and we kept loving every version."],
+];
+
+const films = [
+  { title: "The happiest kind of chaos", length: "0:48", note: "The laugh right at the end is the whole reason this clip lives here." },
+  { title: "One more adventure", length: "1:12", note: "Nobody knew where we were going. You made it feel like the point." },
+  { title: "A very questionable dance", length: "0:36", note: "For legal reasons, we will call this choreography." },
+];
+
+const voiceNotes = [
+  { name: "Riya", length: "0:42", note: "I tried to keep this normal. I lasted eleven seconds. Happy birthday, my favourite human." },
+  { name: "The group chat", length: "1:18", note: "Six people, one microphone, absolutely no ability to speak in turns." },
+  { name: "Home", length: "0:51", note: "A quiet reminder that wherever you go, you are always someone’s favourite notification." },
+];
+
+const soundtrack = [
+  ["01", "Main character morning", "For opening the curtains like today was written for you."],
+  ["02", "Windows-down anthem", "For the drives where nobody knew the words but everyone committed."],
+  ["03", "The soft one", "For late nights, honest talks, and the version of you only close friends know."],
+  ["04", "Birthday forever", "Non-negotiable. Loud every year. No skipping."],
+];
+
+const guestWishes = [
+  ["Riya", "You make ordinary days feel like stories worth keeping."],
+  ["Your people", "Thank you for always saving us a seat — literally and otherwise."],
+  ["The group chat", "Happy birthday to the person who makes the bad ideas memorable."],
+  ["Home", "Go be brilliant. Eat something first."],
 ];
 
 export default function BirthdayStory() {
@@ -18,6 +52,9 @@ export default function BirthdayStory() {
     if (savedTheme === "dark" || savedTheme === "light") return savedTheme;
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   });
+  const [selectedFilm, setSelectedFilm] = useState(0);
+  const [openVoice, setOpenVoice] = useState(0);
+  const [selectedTrack, setSelectedTrack] = useState(0);
   const [name, setName] = useState("Emma");
   const [age, setAge] = useState("21");
   const [from, setFrom] = useState("Riya");
@@ -33,7 +70,7 @@ export default function BirthdayStory() {
   }, [special]);
   const gallery = photos.length ? photos : defaultPhotos;
 
-  const next = () => setChapter((value) => Math.min(value + 1, 4));
+  const next = () => setChapter((value) => Math.min(value + 1, 9));
   const previous = () => setChapter((value) => Math.max(value - 1, -1));
 
   useEffect(() => {
@@ -77,7 +114,7 @@ export default function BirthdayStory() {
       onPointerUp={(event) => finishSwipe(event.clientX)}
     >
       <Confetti count={46} />
-      <p className="sr-status" aria-live="polite">{chapter < 0 ? "Birthday story entrance" : `Room ${chapter + 1} of 5: ${chapters[chapter]}`}</p>
+      <p className="sr-status" aria-live="polite">{chapter < 0 ? "Birthday story entrance" : `Room ${chapter + 1} of 10: ${chapters[chapter]}`}</p>
 
       <header className="story-header">
         <button className="logo" onClick={() => setChapter(-1)} aria-label="Back to the beginning">
@@ -112,7 +149,7 @@ export default function BirthdayStory() {
         <div className="hero-copy">
           <p className="overline">A little birthday world for {name}</p>
           <h1>Something lovely<br />is waiting <em>inside.</em></h1>
-          <p className="lead">Five little rooms. A thousand reasons to celebrate you.</p>
+          <p className="lead">Ten little rooms. A thousand reasons to celebrate you.</p>
           <button className="cta" onClick={next}>Step inside <span>→</span></button>
         </div>
         <div className="hero-tag"><span>{age}</span><p>looks good<br />on you.</p></div>
@@ -147,9 +184,25 @@ export default function BirthdayStory() {
         <p className="tiny-note">And honestly? This list could go on forever.</p>
       </section>
 
-      <section className={`panel memories-panel ${chapter === 2 ? "show" : ""}`} aria-hidden={chapter !== 2}>
+      <section className={`panel timeline-panel ${chapter === 2 ? "show" : ""}`} aria-hidden={chapter !== 2}>
+        <div className="section-heading timeline-heading">
+          <p className="overline">Room three · one step at a time</p>
+          <h2>The years that<br />made <em>you.</em></h2>
+          <p>Every landing keeps a little piece of the story.</p>
+        </div>
+        <div className="timeline-stairs">
+          {timeline.map(([year, title, note], index) => (
+            <article key={year} style={{ "--step": index } as React.CSSProperties}>
+              <b>{year}</b><div><strong>{title}</strong><p>{note}</p></div>
+            </article>
+          ))}
+        </div>
+        <span className="stairs-doodle">keep going ↗</span>
+      </section>
+
+      <section className={`panel memories-panel ${chapter === 3 ? "show" : ""}`} aria-hidden={chapter !== 3}>
         <div className="section-heading memory-heading">
-          <p className="overline">Room three · our favourite frames</p>
+          <p className="overline">Room four · our favourite frames</p>
           <h2>Keep these<br /><em>close.</em></h2>
           <p>Good days, blurry nights, and all the beautiful bits in between.</p>
         </div>
@@ -164,11 +217,69 @@ export default function BirthdayStory() {
         <div className="doodle-arrow">our little<br />time capsule ↗</div>
       </section>
 
-      <section className={`panel wish-panel ${chapter === 3 ? "show" : ""}`} aria-hidden={chapter !== 3}>
+      <section className={`panel cinema-panel ${chapter === 4 ? "show" : ""}`} aria-hidden={chapter !== 4}>
+        <div className="cinema-glow" />
+        <div className="cinema-copy">
+          <p className="overline">Room five · the tiny cinema</p>
+          <h2>Press play on<br /><em>us.</em></h2>
+          <p>{films[selectedFilm].note}</p>
+        </div>
+        <div className="film-screen">
+          <img src={gallery[selectedFilm % gallery.length]} width="1536" height="1024" loading="lazy" decoding="async" alt="Selected birthday memory for the screening room" />
+          <div className="film-screen-shade" />
+          <button aria-label={`Select ${films[selectedFilm].title}`}><span>▶</span></button>
+          <div><b>{films[selectedFilm].title}</b><small>{films[selectedFilm].length}</small></div>
+        </div>
+        <div className="film-list">
+          {films.map((film, index) => <button key={film.title} className={selectedFilm === index ? "active" : ""} onClick={() => setSelectedFilm(index)}><i>0{index + 1}</i><span><b>{film.title}</b><small>{film.length}</small></span></button>)}
+        </div>
+      </section>
+
+      <section className={`panel voices-panel ${chapter === 5 ? "show" : ""}`} aria-hidden={chapter !== 5}>
+        <div className="section-heading voices-heading">
+          <p className="overline">Room six · press to listen</p>
+          <h2>Voices that feel<br />like <em>home.</em></h2>
+          <p>Little messages from the people who know exactly how wonderful you are.</p>
+        </div>
+        <div className="voice-stack">
+          {voiceNotes.map((voice, index) => (
+            <button key={voice.name} className={openVoice === index ? "active" : ""} onClick={() => setOpenVoice(index)} aria-expanded={openVoice === index}>
+              <span className="voice-play">{openVoice === index ? "❚❚" : "▶"}</span>
+              <span className="voice-copy"><b>{voice.name}</b><small>{voice.length}</small><em>{voice.note}</em></span>
+              <i><span /></i>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className={`panel soundtrack-panel ${chapter === 6 ? "show" : ""}`} aria-hidden={chapter !== 6}>
+        <div className="record-disc" aria-hidden="true"><i /><span>for<br />{name}</span></div>
+        <div className="soundtrack-copy">
+          <p className="overline">Room seven · your birthday soundtrack</p>
+          <h2>Every life needs<br />good <em>music.</em></h2>
+          <p>{soundtrack[selectedTrack][2]}</p>
+        </div>
+        <div className="track-list">
+          {soundtrack.map(([number, title], index) => <button key={number} className={selectedTrack === index ? "active" : ""} onClick={() => setSelectedTrack(index)}><i>{number}</i><span>{title}</span><b>{selectedTrack === index ? "♪" : "＋"}</b></button>)}
+        </div>
+      </section>
+
+      <section className={`panel table-panel ${chapter === 7 ? "show" : ""}`} aria-hidden={chapter !== 7}>
+        <div className="table-heading">
+          <p className="overline">Room eight · everyone saved you a seat</p>
+          <h2>The long<br /><em>birthday table.</em></h2>
+          <p>Pull up a chair. There’s love with your name all over it.</p>
+        </div>
+        <div className="wish-table">
+          {guestWishes.map(([author, wish], index) => <article key={author} className={`table-note table-note-${index + 1}`}><span>“</span><p>{wish}</p><b>{author}</b></article>)}
+        </div>
+      </section>
+
+      <section className={`panel wish-panel ${chapter === 8 ? "show" : ""}`} aria-hidden={chapter !== 8}>
         <img src="/generated/birthday-cake.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Pastel birthday cake with candles and confetti" />
         <div className="wish-gradient" />
         <div className="wish-copy">
-          <p className="overline">Room four · make it a good one</p>
+          <p className="overline">Room nine · make it a good one</p>
           <h2>Close your eyes.<br />Make a <em>wish.</em></h2>
           <p>Here’s to {age || "another"} — and every brilliant thing coming next.</p>
           <button className="cta blue" onClick={next}>Blow out the candles <span>→</span></button>
@@ -176,11 +287,11 @@ export default function BirthdayStory() {
         <div className="candle-sparkles" aria-hidden="true"><i>✦</i><i>✦</i><i>✦</i></div>
       </section>
 
-      <section className={`panel finale-panel ${chapter === 4 ? "show" : ""}`} aria-hidden={chapter !== 4}>
+      <section className={`panel finale-panel ${chapter === 9 ? "show" : ""}`} aria-hidden={chapter !== 9}>
         <img src="/generated/birthday-balcony.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Dreamy birthday balcony at blue hour with pink and blue balloons" />
         <div className="finale-wash" />
         <article className="final-card">
-          <p className="overline">One last thing, from {from}</p>
+          <p className="overline">Room ten · one last thing, from {from}</p>
           <h2>Happy birthday,<br /><em>{name}.</em></h2>
           <p className="message">{message}</p>
           <div className="sign-off"><span>With all my love,</span><b>{from}</b></div>
@@ -189,7 +300,7 @@ export default function BirthdayStory() {
         <div className="final-caption">For my favourite {relationship}. <button onClick={() => setChapter(-1)}>Start again ↺</button></div>
       </section>
 
-      {chapter >= 0 && <div className="story-arrows"><button onClick={previous} aria-label="Previous room">←</button><span>{chapter + 1} / 5</span><button onClick={next} disabled={chapter === 4} aria-label="Next room">→</button></div>}
+      {chapter >= 0 && <div className="story-arrows"><button onClick={previous} aria-label="Previous room">←</button><span>{chapter + 1} / 10</span><button onClick={next} disabled={chapter === 9} aria-label="Next room">→</button></div>}
 
       <aside className={`editor ${editorOpen ? "open" : ""}`} aria-hidden={!editorOpen}>
         <div className="editor-title"><div><p className="overline">Make the story theirs</p><h2>Personalise it.</h2></div><button onClick={() => setEditorOpen(false)} aria-label="Close">×</button></div>

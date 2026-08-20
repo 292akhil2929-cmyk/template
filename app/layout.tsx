@@ -7,13 +7,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "A Little Birthday World — Made For You",
     description: "Five little rooms. A thousand reasons to celebrate you.",
-    images: ["https://these-a.vercel.app/og.png"],
+    images: ["https://these-a.vercel.app/og.webp"],
   },
   twitter: {
     card: "summary_large_image",
     title: "A Little Birthday World — Made For You",
     description: "Five little rooms. A thousand reasons to celebrate you.",
-    images: ["https://these-a.vercel.app/og.png"],
+    images: ["https://these-a.vercel.app/og.webp"],
   },
 };
 

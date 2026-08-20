@@ -1,12 +1,12 @@
 "use client";
 
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 const chapters = ["Welcome", "Why you", "Memories", "A wish", "Your card"];
 const defaultPhotos = [
-  "/generated/birthday-doorway.png",
-  "/generated/birthday-cake.png",
-  "/generated/birthday-balcony.png",
+  "/generated/birthday-doorway.webp",
+  "/generated/birthday-cake.webp",
+  "/generated/birthday-balcony.webp",
 ];
 
 export default function BirthdayStory() {
@@ -19,6 +19,7 @@ export default function BirthdayStory() {
   const [special, setSpecial] = useState("Your kind heart, the way you make everyone laugh, and how you always show up");
   const [message, setMessage] = useState("Happy birthday to my favourite adventure buddy. Life is softer, brighter and so much more fun with you in it. Here’s to everything waiting for you this year.");
   const [photos, setPhotos] = useState<string[]>([]);
+  const pointerStartX = useRef<number | null>(null);
 
   const qualities = useMemo(() => {
     const parts = special.split(",").map((item) => item.trim()).filter(Boolean);
@@ -41,12 +42,27 @@ export default function BirthdayStory() {
 
   const uploadPhotos = (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []).slice(0, 4);
+    photos.forEach((photo) => {
+      if (photo.startsWith("blob:")) URL.revokeObjectURL(photo);
+    });
     setPhotos(files.map((file) => URL.createObjectURL(file)));
   };
 
+  const finishSwipe = (clientX: number) => {
+    if (pointerStartX.current === null || editorOpen) return;
+    const distance = clientX - pointerStartX.current;
+    if (Math.abs(distance) > 55) distance < 0 ? next() : previous();
+    pointerStartX.current = null;
+  };
+
   return (
-    <main className="story-shell">
+    <main
+      className="story-shell"
+      onPointerDown={(event) => { pointerStartX.current = event.clientX; }}
+      onPointerUp={(event) => finishSwipe(event.clientX)}
+    >
       <Confetti count={46} />
+      <p className="sr-status" aria-live="polite">{chapter < 0 ? "Birthday story entrance" : `Room ${chapter + 1} of 5: ${chapters[chapter]}`}</p>
 
       <header className="story-header">
         <button className="logo" onClick={() => setChapter(-1)} aria-label="Back to the beginning">
@@ -64,7 +80,7 @@ export default function BirthdayStory() {
       </nav>
 
       <section className={`panel hero-panel ${chapter === -1 ? "show" : ""}`} aria-hidden={chapter !== -1}>
-        <img src="/generated/birthday-doorway.png" alt="Pastel birthday room with balloons and an open blue doorway" />
+        <img src="/generated/birthday-doorway.webp" width="1536" height="1024" fetchPriority="high" alt="Pastel birthday room with balloons and an open blue doorway" />
         <div className="image-wash" />
         <div className="hero-copy">
           <p className="overline">A little birthday world for {name}</p>
@@ -113,7 +129,7 @@ export default function BirthdayStory() {
         <div className="photo-stack">
           {gallery.slice(0, 3).map((photo, index) => (
             <figure key={`${photo}-${index}`} className={`memory-photo memory-${index + 1}`}>
-              <img src={photo} alt={photos.length ? `Uploaded memory ${index + 1}` : `Birthday memory placeholder ${index + 1}`} />
+              <img src={photo} width="1536" height="1024" loading="lazy" decoding="async" alt={photos.length ? `Uploaded memory ${index + 1}` : `Birthday memory placeholder ${index + 1}`} />
               <figcaption>{["the happiest kind of chaos", "one more wish", "always more to come"][index]}</figcaption>
             </figure>
           ))}
@@ -122,7 +138,7 @@ export default function BirthdayStory() {
       </section>
 
       <section className={`panel wish-panel ${chapter === 3 ? "show" : ""}`} aria-hidden={chapter !== 3}>
-        <img src="/generated/birthday-cake.png" alt="Pastel birthday cake with candles and confetti" />
+        <img src="/generated/birthday-cake.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Pastel birthday cake with candles and confetti" />
         <div className="wish-gradient" />
         <div className="wish-copy">
           <p className="overline">Room four · make it a good one</p>
@@ -134,7 +150,7 @@ export default function BirthdayStory() {
       </section>
 
       <section className={`panel finale-panel ${chapter === 4 ? "show" : ""}`} aria-hidden={chapter !== 4}>
-        <img src="/generated/birthday-balcony.png" alt="Dreamy birthday balcony at blue hour with pink and blue balloons" />
+        <img src="/generated/birthday-balcony.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Dreamy birthday balcony at blue hour with pink and blue balloons" />
         <div className="finale-wash" />
         <article className="final-card">
           <p className="overline">One last thing, from {from}</p>
@@ -146,7 +162,7 @@ export default function BirthdayStory() {
         <div className="final-caption">For my favourite {relationship}. <button onClick={() => setChapter(-1)}>Start again ↺</button></div>
       </section>
 
-      {chapter >= 0 && <div className="story-arrows"><button onClick={previous}>←</button><span>{chapter + 1} / 5</span><button onClick={next} disabled={chapter === 4}>→</button></div>}
+      {chapter >= 0 && <div className="story-arrows"><button onClick={previous} aria-label="Previous room">←</button><span>{chapter + 1} / 5</span><button onClick={next} disabled={chapter === 4} aria-label="Next room">→</button></div>}
 
       <aside className={`editor ${editorOpen ? "open" : ""}`} aria-hidden={!editorOpen}>
         <div className="editor-title"><div><p className="overline">Make the story theirs</p><h2>Personalise it.</h2></div><button onClick={() => setEditorOpen(false)} aria-label="Close">×</button></div>
